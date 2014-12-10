@@ -326,47 +326,19 @@ unsigned Save(CONFIG &config)
 	return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
 
 	time_t  time1, time2;
 	time(&time1);
 
-
-	Vector3d l(100,100,100);
-	int grains=3;
-	double v = 10; // cubic A per at
-
-	if (argc==1) {cout << "a b c v n" << endl; exit(0);}
-	if (argc>1) l(0) = atof(argv[1]);
-	if (argc>2) l(1) = atof(argv[2]);
-	if (argc>3) l(2) = atof(argv[3]);
-	if (argc>4) v = atof(argv[4]);
-	if (argc>5) grains = atoi(argv[5]);
-
-	double ac = pow(4.0*v,1.0/3.0);      // bcc
-
-
-	int N = ceil(l.prod()/v);
-
-	if ( grains < 10 ) {N *= 32;}
-/*
-	else
-	if ( grains > 1000 ) {N /= 128; }
-	else
-	if ( grains > 100 ) {N /= 32; }
-	else
-	if ( grains > 50 ) {N /= 8;}
-	N=ceil(N);
-*/
-	CONFIG config(l,ac,grains,N);
-	//config.fnn = ac * pow(3,0.5)/2.0;    // bcc
+	CONFIG config = getinput(argc, argv);
 
 	cout << config.l.transpose() << " box is requested with " << config.ac << " lattice constant and " << config.grains << " grains." << endl;
-	cout << N << " atoms in box, " << config.atoms_grain << " per grain" << endl;
+	//cout << N << " atoms in box, " << config.atoms_grain << " per grain" << endl;
 	//srand(time(NULL));
 
 	IniGrainCenters(config);
-	for (int ig = 0; ig < grains; ig++)
+	for (int ig = 0; ig < config.grains; ig++)
 	{
 		fcc(config);
 		RotateBox(config,ig);

@@ -2,5 +2,5 @@
 #include "classes.h"
 #endif
 
-unsigned getinput(int argc, const char **argv, CONFIG &config);
+CONFIG getinput(int argc, char **argv);
 

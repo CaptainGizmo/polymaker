@@ -34,6 +34,7 @@ public:
     int           atoms_box;
     vector<ATOM>  atom_grain;
     int           atoms_grain;
+    bool          init;
 
     CONFIG(Vector3d l_, double ac_, unsigned grains_, unsigned total_) : l(l_), ac(ac_), grains(grains_), grain(grains_), atom_box(2*total_)
     {
@@ -42,6 +43,7 @@ public:
     //atoms_grain=2*pow(ceil(pow(total_/2.0,1.0/3.0)),3);
     atom_grain.resize(atoms_grain);
     shift = l/2.0;
+    init = false;
     }
     
 };  

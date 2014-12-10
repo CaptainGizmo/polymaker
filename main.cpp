@@ -108,22 +108,24 @@ float fcc(CONFIG &config)
 
 unsigned RotateBox(CONFIG& config, int ig)
 {
+	Vector3d a;
 	Vector3d rotv;
 	Vector3d rtmp;
+	double ANGLE;
 
 	for (unsigned j=0; j<3; j++)
 	{
-		rotv(j) = -1 + 2*rand()%1000000/1000000.;
+		a(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
 	}
-	rotv /= rotv.norm();
 	
-	// Generate random angle
-	float ANGLE = 2.0 * M_PI * (rand()%1000000/1000000.);
-
+	rotv << cos(a(0))*sin(a(1)), sin(a(0))*cos(a(1)), sin(a(1));
+	ANGLE = a(2);
+	
 	for (int i = 0; i<config.atoms_grain ;i++)
 	{
 		rtmp = config.atom_grain[i].r;
-		config.atom_grain[i].r = rtmp * cos(ANGLE) + rotv.cross(rtmp) * sin(ANGLE) + (1 - cos(ANGLE)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigues' rotation formula
+		
+		config.atom_grain[i].r = rtmp * cos(ANGLE) + rotv.cross(rtmp) * sin(ANGLE) + (1 - cos(ANGLE)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
 	}
 
 	return 0;

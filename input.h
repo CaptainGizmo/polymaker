@@ -1,0 +1,2 @@
+unsigned getinput(CONFIG &config)
+

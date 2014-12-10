@@ -12,6 +12,15 @@ else()
     message(FATAL_ERROR "-- Could not find any EIGEN3 library")
 endif()
 
+find_package(Boost)
+#find_package(Boost 1.34.0 COMPONENTS Program_options ...)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "-- Could not find BOOST.Program_options library")
+endif()
+
+
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -lm")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")

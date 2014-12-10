@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(PolyMaker)
 enable_language(CXX)
 
-add_executable(poly main.cpp)
+add_executable(poly main.cpp input.cpp output.cpp)
 
 find_package(Eigen3 3.0.0)
 
@@ -20,6 +20,7 @@ else()
     message(FATAL_ERROR "-- Could not find BOOST.Program_options library")
 endif()
 
+target_link_libraries(poly boost_program_options)
 
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -lm")
 set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")

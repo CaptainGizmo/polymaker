@@ -1,3 +1,13 @@
+#ifndef   CLASSES_H
+#define   CLASSES_H
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/LU>
+
+using namespace Eigen;
+using namespace std;
+
 class ATOM { // class for each atom's properties
 public:
     unsigned type;
@@ -36,3 +46,4 @@ public:
     
 };  
 
+#endif

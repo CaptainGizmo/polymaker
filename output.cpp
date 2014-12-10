@@ -14,9 +14,12 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
+#ifndef  CLASSES_H  
+#include "classes.h"
+#endif
+
 using namespace Eigen;
 using namespace std;
-namespace po = boost::program_options;
 
 unsigned printLAMMPS(CONFIG &config)
 {

@@ -14,13 +14,17 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
+#include <boost/program_options.hpp>
+
+#ifndef  CLASSES_H  
 #include "classes.h"
+#endif
 
 using namespace Eigen;
 using namespace std;
 namespace po = boost::program_options;
 
-unsigned getinput()
+unsigned getinput(int argc, const char **argv, CONFIG &config)
 {
 
     // Declare the supported options.
@@ -29,10 +33,10 @@ unsigned getinput()
         ("help", "produce help message")
         ("v", po::value<double>(), "volume per atom")
         ("n", po::value<int>(), "number of grains")
-        ("a", po::value<int>(), "box side")
+        ("a", po::value<double>(), "box side")
     ;
     po::variables_map vm;
-    po::store(po::parse_command_line(ac, av, desc), vm);
+    po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
 
     if (vm.count("help")) {
@@ -48,4 +52,6 @@ unsigned getinput()
     {
         cout << "Number of grains is set to 1 (default).\n";
     }
+    
+    return 0;
 }

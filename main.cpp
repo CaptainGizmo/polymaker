@@ -14,13 +14,20 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
+#ifndef  INPUT_H  
 #include "input.h"
+#endif
+
+#ifndef  OUTPUT_H  
 #include "output.h"
+#endif
+
+#ifndef  CLASSES_H  
 #include "classes.h"
+#endif
 
 using namespace Eigen;
 using namespace std;
-namespace po = boost::program_options;
 
 unsigned IniGrainCenters(CONFIG& config) 
 {

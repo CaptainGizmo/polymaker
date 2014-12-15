@@ -130,7 +130,7 @@ CONFIG getinput(int argc, char **argv)
     
     Vector3d l(a,b,c);
     ac = pow(4.0*v,1.0/3.0);      // bcc
-    N = ceil(l.prod()/v);
+    N = 2*ceil(l.prod()/v);
     CONFIG config(l,ac,grains,N);
     
     return config;

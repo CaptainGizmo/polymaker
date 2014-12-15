@@ -1,4 +1,6 @@
 build
+docs
+web
 CMakeCache.txt
 CMakeFiles
 Makefile

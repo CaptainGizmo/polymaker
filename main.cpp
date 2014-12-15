@@ -38,6 +38,11 @@ unsigned IniGrainCenters(CONFIG& config)
         {
             config.grain[ig].r(dim) = config.shift(dim) * (rand()%2000000/1000000. - 1);
         }
+        for (unsigned j=0; j<3; j++)
+    	{
+		    config.grain[ig].ang(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
+	    }
+
     }
     return 0;
 }
@@ -113,13 +118,12 @@ unsigned RotateBox(CONFIG& config, int ig)
 	Vector3d rtmp;
 	double ANGLE;
 
-	for (unsigned j=0; j<3; j++)
-	{
-		a(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
-	}
+    a = config.grain[ig].ang;
 	
-	rotv << cos(a(0))*sin(a(1)), sin(a(0))*cos(a(1)), sin(a(1));
+	rotv << cos(a(0))*sin(a(1)), sin(a(0))*sin(a(1)), cos(a(1));
 	ANGLE = a(2);
+	
+	//cout << ig << " (" << a.transpose() << ") " <<" (" << rotv.transpose() << ") " << rotv.norm() << " " << ANGLE << endl;
 	
 	for (int i = 0; i<config.atoms_grain ;i++)
 	{
@@ -206,9 +210,9 @@ unsigned Voronoi(CONFIG &config, int ig)
 unsigned Save(CONFIG &config) 
 {
 
-        int dim;
+    int dim;
 
-        cout << "Add " << config.atoms_box << " atoms to the box" << endl;
+    cout << "Add " << config.atoms_box << " atoms to the box" << endl;
 
 	for(int i = 0; i < config.atoms_box; i++) // check all atoms of this grain
 	{

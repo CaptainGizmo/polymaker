@@ -18,6 +18,7 @@ class GRAIN// : virtual ATOM
 {
 public:
   Vector3d r; // grain center positions
+  Vector3d ang; // grain rotation Euler angles
 };
 
 

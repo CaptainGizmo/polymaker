@@ -47,7 +47,7 @@ unsigned IniGrainCenters(CONFIG& config)
     return 0;
 }
 
-float bcc(CONFIG &config)
+float bcc(CONFIG &config, int ig)
 {
 
 	// generate bcc coordinates, 2 atoms per cell
@@ -68,7 +68,10 @@ float bcc(CONFIG &config)
 			for(i(2) = 0; i(2) < N; i(2)++)
 			{
 				for(unsigned col = 0; col < cell.cols(); col++)
-					config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
+				    {
+					    config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
+					    config.atom_grain[ia+col].type = ig;
+					}
 				ia+=2;
 			}
 		}
@@ -80,7 +83,7 @@ float bcc(CONFIG &config)
 
 
 
-float fcc(CONFIG &config)
+float fcc(CONFIG &config, int ig)
 {
 
 	Matrix<double, 3, 4> cell;
@@ -100,7 +103,10 @@ float fcc(CONFIG &config)
 			for(i(2) = 0; i(2) < N; i(2)++)
 			{
 				for(unsigned col = 0; col < cell.cols(); col++)
-					config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
+				    {
+					    config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
+					    config.atom_grain[ia+col].type = ig;
+					}
 				ia+=4;
 			}
 		}
@@ -128,7 +134,6 @@ unsigned RotateBox(CONFIG& config, int ig)
 	for (int i = 0; i<config.atoms_grain ;i++)
 	{
 		rtmp = config.atom_grain[i].r;
-		
 		config.atom_grain[i].r = rtmp * cos(ANGLE) + rotv.cross(rtmp) * sin(ANGLE) + (1 - cos(ANGLE)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
 	}
 
@@ -197,7 +202,7 @@ unsigned Voronoi(CONFIG &config, int ig)
 
 		if (jg==config.grains)
 		{
-			config.atom_box[config.atoms_box].r = config.atom_grain[i].r;
+			config.atom_box[config.atoms_box] = config.atom_grain[i];
 			config.atoms_box++;
 			n++;
 		}
@@ -240,7 +245,7 @@ int main(int argc, char **argv) {
 	IniGrainCenters(config);
 	for (int ig = 0; ig < config.grains; ig++)
 	{
-		fcc(config);
+		fcc(config,ig);
 		RotateBox(config,ig);
 		Voronoi(config,ig);
 	}

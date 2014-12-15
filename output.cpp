@@ -80,7 +80,7 @@ unsigned printXYZ(CONFIG &config)
 
     for (int  i = 0; i < config.atoms_box; i++)
     {
-        outfile << "Fe" << setw (15)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << endl;
+        outfile << "Fe" << setw (15)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << " " << config.atom_box[i].type << endl;
     }
     
     outfile.close();

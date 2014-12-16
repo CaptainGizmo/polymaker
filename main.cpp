@@ -66,11 +66,11 @@ float Lattice(CONFIG &config, int ig)
 					    config.atom_grain[ia+col].type = ig;
 					}
 				ia+=config.cell.cols();
+				//cout << ia << " " << config.atoms_grain << " " << N << " " << i.transpose() <<  endl;
 			}
 		}
 	}
 	
-
 	return 0;
 }
 
@@ -87,10 +87,9 @@ unsigned RotateBox(CONFIG& config, int ig)
 	rotv << cos(a(0))*sin(a(1)), sin(a(0))*sin(a(1)), cos(a(1));
 	ANGLE = a(2);
 	
-	//cout << ig << " (" << a.transpose() << ") " <<" (" << rotv.transpose() << ") " << rotv.norm() << " " << ANGLE << endl;
-	
-	for (int i = 0; i<config.atoms_grain ;i++)
+	for (int i = 0; i < config.atoms_grain; i++)
 	{
+	    //cout << i << " " << config.atoms_grain << " " << config.atom_grain.size() <<  endl;
 		rtmp = config.atom_grain[i].r;
 		config.atom_grain[i].r = rtmp * cos(ANGLE) + rotv.cross(rtmp) * sin(ANGLE) + (1 - cos(ANGLE)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
 	}
@@ -133,7 +132,7 @@ unsigned Voronoi(CONFIG &config, int ig)
       float dx = 0.001; //   config.fnn/2 * 0.9;
 
 	for(int i = 0; i < config.atoms_grain; i++) // check all atoms of this grain
-	{
+	{  
 		r = (config.atom_grain[i].r - config.grain[ig].r).norm() + dx; // distance to its center
 		for(jg = 0; jg < config.grains; jg++) // compare to the another grain centers
 		{

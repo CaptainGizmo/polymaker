@@ -38,11 +38,12 @@ public:
     bool          init;
     MatrixXd      cell;
 
-    CONFIG(Vector3d l, double ac, unsigned grains, unsigned total) : l(l), ac(ac), grains(grains), grain(grains), atom_box(0)
+    CONFIG(Vector3d l, double ac, unsigned grains, unsigned total, MatrixXd cell) : l(l), ac(ac), grains(grains), grain(grains), atom_box(0), cell(cell)
     {
-    //atoms_box=0;
-    atoms_grain=ceil( pow(3.0,3.0/2.0) * total / pow(grains,1.0/3.0) );
+    atoms_box = 0;
+    atoms_grain = pow(ceil(pow(pow(3.0,3.0/2.0) * total / pow(grains,1.0/3.0) / cell.cols(), 1.0/3.0)),3.0) * cell.cols();
     atom_grain.resize(atoms_grain);
+    atom_box.resize(2*atoms_grain);
     shift = l/2.0;
     init = false;
     }

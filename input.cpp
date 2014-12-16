@@ -35,9 +35,11 @@ ostream& operator<<(ostream& os, const vector<T>& v)
 CONFIG getinput(int argc, char **argv)
 {
 
-    int grains, N;
+    int grains, N, type;
     double ac, v;
     double a, b, c;
+    string cell;
+    MatrixXd unitcell;
 
     try
     {
@@ -117,6 +119,15 @@ CONFIG getinput(int argc, char **argv)
       {
           v = 10;
       }
+
+      if (vm.count("type")) 
+      {
+          cell = vm["type"].as<string>();
+      } 
+      else
+      {
+          cell = "fcc";
+      }
     
     }
     catch(exception& e) {
@@ -128,10 +139,60 @@ CONFIG getinput(int argc, char **argv)
         exit(1);
     } 
     
+    if (cell.compare("bcc") == 0)
+    {
+        type = 1;
+    }
+    else 
+    if (cell.compare("fcc") == 0)
+    {
+       type = 2;
+    }
+    else
+    {
+       type = 0;
+    }
+
+    try{
+      switch(type)
+      {
+        case 1: 
+            // bcc
+            unitcell.resize(3,2);
+            unitcell << 0, 0.5,
+                        0, 0.5,
+                        0, 0.5;
+            ac = pow(2.0*v,1.0/3.0);    
+            break;
+        case 2:
+            unitcell.resize(3,4);
+            unitcell << 0, 0.5, 0.5,   0,
+                        0,   0, 0.5, 0.5,
+                        0, 0.5,   0, 0.5;
+            ac = pow(4.0*v,1.0/3.0);    
+    
+
+            break;
+        default:
+            throw "Unknown cell type!";
+            break;
+      }
+    }
+    catch(exception& e) {
+      cerr << "error: " << e.what() << "\n";
+      exit(1);
+    }
+    catch(...) {
+      cerr << "Exception of unknown type!\n";
+      exit(1);
+    } 
+    
+
     Vector3d l(a,b,c);
-    ac = pow(4.0*v,1.0/3.0);      // bcc
     N = 2*ceil(l.prod()/v);
     CONFIG config(l,ac,grains,N);
-    
+    config.cell.resize(unitcell.rows(), unitcell.cols());
+    config.cell = unitcell;
+
     return config;
 }

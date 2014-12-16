@@ -47,19 +47,12 @@ unsigned IniGrainCenters(CONFIG& config)
     return 0;
 }
 
-float bcc(CONFIG &config, int ig)
+
+float Lattice(CONFIG &config, int ig)
 {
-
-	// generate bcc coordinates, 2 atoms per cell
-	Matrix<double, 3, 2> cell;
-	
-	cell << 0, 0.5,
-	        0, 0.5,
-	        0, 0.5;
-
 	unsigned ia = 0;
 	Vector3d i;
-	float N = pow(config.atoms_grain/2.0,1.0/3.0);
+	float N = pow(config.atoms_grain/config.cell.cols(),1.0/3.0);
 
 	for(i(0) = 0; i(0) < N; i(0)++)
 	{
@@ -67,47 +60,12 @@ float bcc(CONFIG &config, int ig)
 		{
 			for(i(2) = 0; i(2) < N; i(2)++)
 			{
-				for(unsigned col = 0; col < cell.cols(); col++)
+				for(unsigned col = 0; col < config.cell.cols(); col++)
 				    {
-					    config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
+					    config.atom_grain[ia+col].r = config.ac * (config.cell.col(col)+i) - config.shift;
 					    config.atom_grain[ia+col].type = ig;
 					}
-				ia+=2;
-			}
-		}
-	}
-	
-
-	return 0;
-}
-
-
-
-float fcc(CONFIG &config, int ig)
-{
-
-	Matrix<double, 3, 4> cell;
-	
-	cell << 0, 0.5, 0.5,   0,
-	        0,   0, 0.5, 0.5,
-	        0, 0.5,   0, 0.5; 
-
-	unsigned ia = 0;
-	Vector3d i;
-	float N = pow(config.atoms_grain/4.0,1.0/3.0);
-
-	for(i(0) = 0; i(0) < N; i(0)++)
-	{
-		for(i(1) = 0; i(1) < N; i(1)++)
-		{
-			for(i(2) = 0; i(2) < N; i(2)++)
-			{
-				for(unsigned col = 0; col < cell.cols(); col++)
-				    {
-					    config.atom_grain[ia+col].r = config.ac * (cell.col(col)+i) - config.shift;
-					    config.atom_grain[ia+col].type = ig;
-					}
-				ia+=4;
+				ia+=config.cell.cols();
 			}
 		}
 	}
@@ -245,7 +203,7 @@ int main(int argc, char **argv) {
 	IniGrainCenters(config);
 	for (int ig = 0; ig < config.grains; ig++)
 	{
-		fcc(config,ig);
+		Lattice(config,ig);
 		RotateBox(config,ig);
 		Voronoi(config,ig);
 	}

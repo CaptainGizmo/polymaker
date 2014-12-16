@@ -36,6 +36,7 @@ public:
     vector<ATOM>  atom_grain;
     int           atoms_grain;
     bool          init;
+    MatrixXd      cell;
 
     CONFIG(Vector3d l_, double ac_, unsigned grains_, unsigned total_) : l(l_), ac(ac_), grains(grains_), grain(grains_), atom_box(2*total_)
     {

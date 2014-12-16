@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(PolyMaker)
 enable_language(CXX)
 
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBRARIES OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+
 add_executable(poly main.cpp input.cpp output.cpp)
 
 find_package(Eigen3 3.0.0)

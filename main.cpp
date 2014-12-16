@@ -31,6 +31,11 @@ using namespace std;
 
 unsigned IniGrainCenters(CONFIG& config) 
 {
+    Vector3d a;
+    Vector3d rotv;
+    Vector3d rtmp;
+    double ANGLE;
+
     cout << "Initialize grain centers" << endl;
     for (int ig=0; ig<config.grains; ig++)
     {
@@ -42,7 +47,12 @@ unsigned IniGrainCenters(CONFIG& config)
     	{
 		    config.grain[ig].ang(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
 	    }
-
+	    
+	    a = config.grain[ig].ang;
+	    rotv << 1/cos(a(0))*sin(a(1)), 1/sin(a(0))*sin(a(1)), 1/cos(a(1));
+    	ANGLE = -a(2);
+	    rtmp = -config.grain[ig].r;
+    	config.grain[ig].rotvT = rtmp * cos(ANGLE) + rotv.cross(rtmp) * sin(ANGLE) + (1 - cos(ANGLE)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
     }
     return 0;
 }
@@ -73,7 +83,6 @@ float Lattice(CONFIG &config, int ig)
 	
 	return 0;
 }
-
 
 unsigned RotateBox(CONFIG& config, int ig)
 {
@@ -125,19 +134,21 @@ unsigned BoxBorder(CONFIG& config, int ig)
 unsigned Voronoi(CONFIG &config, int ig) 
 {
 
-      float r,r0;
-      int jg;
-      Vector3d g,p;
+      float r = 0;
+      float r0 = 0;
+      int jg = 0;
+      Vector3d g; g << 0 ,0 , 0;
+      Vector3d p; p << 0 ,0 , 0;
       int n = 0;
       float dx = 0.001; //   config.fnn/2 * 0.9;
 
+    #pragma omp parallel for shared(config,n) private(p,g,jg,r,r0)
 	for(int i = 0; i < config.atoms_grain; i++) // check all atoms of this grain
 	{  
 		r = (config.atom_grain[i].r - config.grain[ig].r).norm() + dx; // distance to its center
+
 		for(jg = 0; jg < config.grains; jg++) // compare to the another grain centers
 		{
-			//if (ig != jg) // do not need to check to itself
-			//{
 			for(p(0) = -1; p(0) <=1; p(0)++)
 			{
 				for(p(1) = -1; p(1) <=1; p(1)++)
@@ -154,15 +165,16 @@ unsigned Voronoi(CONFIG &config, int ig)
 				if(p(1)!=2) break;
 			}
 			if(p(0)!=2) break;
-			//}
 		}
-
+        
+        #pragma omp critical
 		if (jg==config.grains)
 		{
 			config.atom_box[config.atoms_box] = config.atom_grain[i];
 			config.atoms_box++;
 			n++;
 		}
+		
 	}
 	cout << "[" << ig << "] " << n << endl;
 	

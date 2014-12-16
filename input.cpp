@@ -189,7 +189,7 @@ CONFIG getinput(int argc, char **argv)
     
 
     Vector3d l(a,b,c);
-    N = 2*ceil(l.prod()/v);
+    N = ceil(l.prod()/v);
     CONFIG config(l,ac,grains,N);
     config.cell.resize(unitcell.rows(), unitcell.cols());
     config.cell = unitcell;

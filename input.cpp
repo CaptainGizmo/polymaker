@@ -35,11 +35,11 @@ ostream& operator<<(ostream& os, const vector<T>& v)
 CONFIG getinput(int argc, char **argv)
 {
 
-    int grains, N, type;
+    int grains, cell_type, out_type;
     double ac, v;
-    double a, b, c;
-    string cell;
-    MatrixXd unitcell;
+    string cell, name, out;
+    MatrixXd unit_cell;
+    Vector3d l;
 
     try
     {
@@ -51,14 +51,15 @@ CONFIG getinput(int argc, char **argv)
           //("optimization",   po::value<int>(&opt)->default_value(10),    "optimization level")
           //("include-path,I", po::value< vector<string> >()->composing(), "include path")
 
-          ("V,v", po::value<double>(), "volume per atom")
-          ("N,n", po::value<int>(), "number of grains")
-          ("A,a", po::value<double>()->composing(), "box side a")
-          ("B,b", po::value<double>(), "box side b")
-          ("C,c", po::value<double>(), "box side c")
+          ("V,v", po::value<double>(&v)->required(), "volume per atom")
+          ("N,n", po::value<int>(&grains)->default_value(1), "number of grains")
+          ("A,a", po::value<double>(&l[0])->required(), "box side a")
+          ("B,b", po::value<double>(&l[1]), "box side b")
+          ("C,c", po::value<double>(&l[2]), "box side c")
           ("type,t", po::value< vector<string> >(), "lattice type")
           ("out,o", po::value< vector<string> >(), "output file type")
-      ;
+          ("element,e", po::value< vector<string> >(), "element name")
+;
       po::variables_map vm;
       po::store(po::parse_command_line(argc, argv, desc), vm);
       po::notify(vm);    
@@ -67,67 +68,18 @@ CONFIG getinput(int argc, char **argv)
         cout << desc << "\n";
         exit(1);
       }
+
+      if (!vm.count("B")) l[1] = l[0];
+      if (!vm.count("C")) l[2] = l[0];
       
       if (vm.count("out"))
       {
           cout << "Output file type is " << vm["out"].as< vector<string> >() << "\n";
       }
     
-      if (vm.count("A")) 
-      {
-          a = vm["A"].as<double>();
-      } 
-      else
-      {
-          cout << "Please set box size a.\n";
-          exit(1);
-      }     
-
-      if (vm.count("B")) 
-      {
-          b = vm["B"].as<double>();
-      } 
-      else
-      {
-          b = a;
-      }
-
-      if (vm.count("C")) 
-      {
-          c = vm["C"].as<double>();
-      } 
-      else
-      {
-          c = a;
-      }
-    
-      if (vm.count("N")) 
-      {
-          grains = vm["N"].as<int>();
-      }    
-      else
-      {
-          grains = 1;
-      }
-
-
-      if (vm.count("V")) 
-      {
-          v = vm["V"].as<double>();
-      } 
-      else
-      {
-          v = 10;
-      }
-
-      if (vm.count("type")) 
-      {
-          cell = vm["type"].as<string>();
-      } 
-      else
-      {
-          cell = "fcc";
-      }
+      name = "Xe";
+      cell = "fcc";
+      out = "xyz";
     
     }
     catch(exception& e) {
@@ -141,32 +93,53 @@ CONFIG getinput(int argc, char **argv)
     
     if (cell.compare("bcc") == 0)
     {
-        type = 1;
+        cell_type = 1;
     }
     else 
     if (cell.compare("fcc") == 0)
     {
-       type = 2;
+       cell_type = 2;
     }
     else
     {
-       type = 0;
+       throw "Unknown unit cell!";
     }
 
+    if (out.compare("dlpoly") == 0)
+    {
+        out_type = 1;
+    }
+    else 
+    if (out.compare("lammps") == 0)
+    {
+       out_type = 2;
+    }
+    else 
+    if (out.compare("xyz") == 0)
+    {
+       out_type = 3;
+    }
+    else
+    {
+       throw "Unknown output format!";
+    }
+
+
+
     try{
-      switch(type)
+      switch(cell_type)
       {
         case 1: 
             // bcc
-            unitcell.resize(3,2);
-            unitcell << 0, 0.5,
+            unit_cell.resize(3,2);
+            unit_cell << 0, 0.5,
                         0, 0.5,
                         0, 0.5;
             ac = pow(2.0*v,1.0/3.0);    
             break;
         case 2:
-            unitcell.resize(3,4);
-            unitcell << 0, 0.5, 0.5,   0,
+            unit_cell.resize(3,4);
+            unit_cell << 0, 0.5, 0.5,   0,
                         0,   0, 0.5, 0.5,
                         0, 0.5,   0, 0.5;
             ac = pow(4.0*v,1.0/3.0);    
@@ -183,14 +156,14 @@ CONFIG getinput(int argc, char **argv)
       exit(1);
     }
     catch(...) {
-      cerr << "Exception of unknown type!\n";
+      cerr << "Exception of unknown type2!\n";
       exit(1);
     } 
     
-
-    Vector3d l(a,b,c);
-    N = ceil(l.prod()/v);
-    CONFIG config(l,ac,grains,N,unitcell);
+    CONFIG config(l, ac, grains, v, unit_cell);
+    config.name = name;
+    config.out_type = out_type;
+    config.cell_type = cell_type;
 
     return config;
 }

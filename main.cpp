@@ -220,10 +220,27 @@ int main(int argc, char **argv) {
 	}
 	cout << endl;
 	Save(config);
+
+    switch(config.out_type)
+      {
+        case 1:
+            printDLPOLY(config);
+            break;
+        case 2:
+        	printLAMMPS(config);
+            break;
+        case 3:            
+        	printXYZ(config);
+        	break;
+        default:
+            throw "Unknown output format.";
+            break;
+      }
+ 
+    
+    	
 	
-	printLAMMPS(config);
-	printDLPOLY(config);
-	printXYZ(config);
+
 	
 	time(&time2);
 	

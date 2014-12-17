@@ -57,6 +57,7 @@ CONFIG getinput(int argc, char **argv)
             ("out,o",     po::value<std::string>(&out)->default_value("lammps"),        "output file type")
             ("input,i",   po::value<std::string>(&filename),   "grain parameters' file")
             ("element,e", po::value<std::string>(&name)->default_value("Xe"),           "element name")
+            ("init",      po::value<std::string>()->default_value("Y"),       "")
 //            ("time", po::value<int>(), "time")
         ;
 
@@ -82,6 +83,7 @@ CONFIG getinput(int argc, char **argv)
            cell_type = 2;
         else
            throw "Unknown unit cell!";
+
 
         if (out.compare("dlpoly") == 0)
             out_type = 1;
@@ -124,6 +126,15 @@ CONFIG getinput(int argc, char **argv)
         config.filename = filename;
         if (vm.count("input")) 
             config.read_grains = true;
+
+        if (vm["init"].as<std::string>().compare("Y") == 0)
+            config.init = true;
+        else 
+        if (vm["init"].as<std::string>().compare("N") == 0)
+            config.init = false;
+        else
+           throw "Unknown init param!";
+
 
         return config;
     }

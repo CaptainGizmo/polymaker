@@ -21,7 +21,7 @@
 using namespace Eigen;
 using namespace std;
 
-unsigned printLAMMPS(CONFIG &config)
+unsigned WriteLAMMPS(CONFIG &config)
 {
     cout << "Saving LAMMPS config with " << config.atoms_box << " atoms." << endl;
     stringstream filename;
@@ -64,7 +64,7 @@ unsigned printLAMMPS(CONFIG &config)
     return 0;
 }
 
-unsigned printXYZ(CONFIG &config)
+unsigned WriteXYZ(CONFIG &config)
 {
     stringstream filename;
     string filename_s;
@@ -87,7 +87,7 @@ unsigned printXYZ(CONFIG &config)
     return 0;
 }
 
-unsigned printDLPOLY(CONFIG &config)
+unsigned WriteDLPOLY(CONFIG &config)
 {
     stringstream filename;
     string filename_s;
@@ -107,10 +107,32 @@ unsigned printDLPOLY(CONFIG &config)
     for (int  i = 0; i < config.atoms_box; i++)
     {
         outfile << config.name << "   " << i+1 << endl;
-        outfile << setw (15)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << endl;
+        outfile << setw (22)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << endl;
     }
     
     outfile.close();
+
+    return 0;
+}
+
+unsigned WriteGrains(CONFIG &config)
+{
+
+    stringstream filename;
+    string filename_s;
+
+    filename << "GRAINS";
+    filename_s = filename.str();
+    ofstream outfile (filename_s.c_str(), ios::trunc);
+    outfile.precision(20);
+
+    for (int  i = 0; i < config.grains; i++)
+    {
+        outfile << setw (15) << i << " " << config.grain[i].r.transpose() << " " << config.grain[i].angle.transpose() << endl;
+    }
+    
+    outfile.close();
+
 
     return 0;
 }

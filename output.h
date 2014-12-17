@@ -2,6 +2,7 @@
 #include "classes.h"
 #endif
 
-unsigned printLAMMPS(CONFIG &config);
-unsigned printXYZ(CONFIG &config);
-unsigned printDLPOLY(CONFIG &config);
+unsigned WriteLAMMPS(CONFIG &config);
+unsigned WriteXYZ(CONFIG &config);
+unsigned WriteDLPOLY(CONFIG &config);
+unsigned WriteGrains(CONFIG &config);

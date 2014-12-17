@@ -3,4 +3,5 @@
 #endif
 
 CONFIG getinput(int argc, char **argv);
+unsigned ReadGrains(CONFIG &config);
 

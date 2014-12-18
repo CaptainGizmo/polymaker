@@ -128,7 +128,7 @@ unsigned WriteGrains(CONFIG &config)
 
     for (int  i = 0; i < config.grains; i++)
     {
-        outfile << setw (15) << i << " " << config.grain[i].r.transpose() << " " << config.grain[i].angle.transpose() << endl;
+        outfile << setw (15) << i << " " << (config.grain[i].r.array()/config.l.array()).transpose() << " " << config.grain[i].angle.transpose() << endl;
     }
     
     outfile.close();

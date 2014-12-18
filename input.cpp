@@ -150,6 +150,45 @@ CONFIG getinput(int argc, char **argv)
 
 unsigned ReadGrains(CONFIG &config)
 {
-    cout << "Read grain parameters from " << config.filename << endl;
+    string buf;
+    istringstream iss;
+    stringstream tmp;
+    int i = 0;
+    int j;
+
+    try
+    {    
+
+        cout << "Read grain parameters from " << config.filename << endl;
+        ifstream infile (config.filename.c_str(),ios::in);
+        if( !infile ) 
+        {
+            cout << "Can't open " << config.filename.c_str() << endl; 
+            exit(1);
+        }
+
+        while( getline( infile, buf) )
+        {
+            iss.str(buf); 
+            iss.clear(); 
+            iss >> j >> config.grain[i].r(0)  >> config.grain[i].r(1) >> config.grain[i].r(2) >> config.grain[i].angle(0) >> config.grain[i].angle(1) >> config.grain[i].angle(2);
+            //cout << i << " " << config.grain[i].r.transpose() << " " << config.grain[i].angle.transpose() << endl;
+            i ++;
+        }
+        
+        if (i != config.grains) throw "Wrong number of lines in grains parameter file.";
+        infile.close();
+
+    }
+    catch(exception& e) {
+      cerr << "error: " << e.what() << "\n";
+      exit(1);
+    }
+/*
+    catch(...) {
+      cerr << "Exception of unknown type! \n";
+      exit(1);
+    }
+*/
     return 0;
 }

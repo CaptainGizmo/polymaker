@@ -47,6 +47,7 @@ unsigned IniGrainCenters(CONFIG& config)
         {
             config.grain[ig].r(dim) = config.shift(dim) * (rand()%2000000/1000000. - 1);
         }
+
         for (unsigned j=0; j<3; j++)
     	{
 		    config.grain[ig].angle(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
@@ -114,7 +115,6 @@ unsigned RotateBox(CONFIG& config, int ig)
 	
 	for (int i = 0; i < config.atoms_grain; i++)
 	{
-	    //cout << i << " " << config.atoms_grain << " " << config.atom_grain.size() <<  endl;
 		rtmp = config.atom_grain[i].r;
 		config.atom_grain[i].r = rtmp * cos(angle) + rotv.cross(rtmp) * sin(angle) + (1 - cos(angle)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
 	}

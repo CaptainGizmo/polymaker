@@ -153,6 +153,7 @@ unsigned ReadGrains(CONFIG &config)
     string buf;
     istringstream iss;
     stringstream tmp;
+    GRAIN grain;
     int i = 0;
     int j;
 
@@ -171,8 +172,10 @@ unsigned ReadGrains(CONFIG &config)
         {
             iss.str(buf); 
             iss.clear(); 
-            iss >> j >> config.grain[i].r(0)  >> config.grain[i].r(1) >> config.grain[i].r(2) >> config.grain[i].angle(0) >> config.grain[i].angle(1) >> config.grain[i].angle(2);
+            iss >> j >> grain.r(0)  >> grain.r(1) >> grain.r(2) >> grain.angle(0) >> grain.angle(1) >> grain.angle(2);
             //cout << i << " " << config.grain[i].r.transpose() << " " << config.grain[i].angle.transpose() << endl;
+            config.grain[i].r = grain.r.array() * config.l.array();
+            config.grain[i].angle = grain.angle;
             i ++;
         }
         

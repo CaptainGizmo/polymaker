@@ -14,22 +14,22 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
-#ifndef  INPUT_H  
+#ifndef  INPUT_H
 #include "input.h"
 #endif
 
-#ifndef  OUTPUT_H  
+#ifndef  OUTPUT_H
 #include "output.h"
 #endif
 
-#ifndef  CLASSES_H  
+#ifndef  CLASSES_H
 #include "classes.h"
 #endif
 
 using namespace Eigen;
 using namespace std;
 
-unsigned IniGrainCenters(CONFIG& config) 
+unsigned IniGrainCenters(CONFIG& config)
 {
     Vector3d a;
     Vector3d rotv;
@@ -42,25 +42,24 @@ unsigned IniGrainCenters(CONFIG& config)
     cout << "Initialize grain centers ";
     for (int ig=0; ig<config.grains; ig++)
     {
-        
         for (int dim=0; dim<3; dim++)
         {
             config.grain[ig].r(dim) = config.shift(dim) * (rand()%2000000/1000000. - 1);
         }
 
         for (unsigned j=0; j<3; j++)
-    	{
-		    config.grain[ig].angle(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
-	    }
-	    
-	    a = config.grain[ig].angle;
-	    rotv << 1/cos(a(0))*sin(a(1)), 1/sin(a(0))*sin(a(1)), 1/cos(a(1));
-    	angle = -a(2);
-	    rtmp = -config.grain[ig].r;
-    	config.grain[ig].rotvT = rtmp * cos(angle) + rotv.cross(rtmp) * sin(angle) + (1 - cos(angle)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
-    	cout << ".";
+        {
+            config.grain[ig].angle(j) = 2.0 * M_PI * (rand()%1000000/1000000.);
+        }
+
+        a = config.grain[ig].angle;
+        rotv << 1/cos(a(0))*sin(a(1)), 1/sin(a(0))*sin(a(1)), 1/cos(a(1));
+        angle = -a(2);
+        rtmp = -config.grain[ig].r;
+        config.grain[ig].rotvT = rtmp * cos(angle) + rotv.cross(rtmp) * sin(angle) + (1 - cos(angle)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
+        cout << ".";
     }
-    
+
     time(&time2);
     if (config.time) cout << endl << "Done in " << time2-time1 << " s.";
     cout << endl;
@@ -70,67 +69,67 @@ unsigned IniGrainCenters(CONFIG& config)
 
 float Lattice(CONFIG &config, int ig)
 {
-	unsigned ia = 0;
-	Vector3d i;
+    unsigned ia = 0;
+    Vector3d i;
     time_t  time1, time2;
     time(&time1);
 
-	float N = pow(config.atoms_grain/config.unit_cell.cols(),1.0/3.0);
+    float N = pow(config.atoms_grain/config.unit_cell.cols(),1.0/3.0);
 
-	for(i(0) = 0; i(0) < N; i(0)++)
-	{
-		for(i(1) = 0; i(1) < N; i(1)++)
-		{
-			for(i(2) = 0; i(2) < N; i(2)++)
-			{
-				for(unsigned col = 0; col < config.unit_cell.cols(); col++)
-				    {
-					    config.atom_grain[ia+col].r = config.ac * (config.unit_cell.col(col)+i) - config.shift;
-					    config.atom_grain[ia+col].type = ig;
-					}
-				ia+=config.unit_cell.cols();
-			}
-		}
-	}
-	
+    for(i(0) = 0; i(0) < N; i(0)++)
+    {
+        for(i(1) = 0; i(1) < N; i(1)++)
+        {
+            for(i(2) = 0; i(2) < N; i(2)++)
+            {
+                for(unsigned col = 0; col < config.unit_cell.cols(); col++)
+                {
+                    config.atom_grain[ia+col].r = config.ac * (config.unit_cell.col(col)+i) - config.shift;
+                    config.atom_grain[ia+col].type = ig;
+                }
+                ia+=config.unit_cell.cols();
+            }
+        }
+    }
+
     time(&time2);
     if (config.time) cout << endl << "Lattice init " << time2-time1 << " s. ";
-	return 0;
+    return 0;
 }
 
 unsigned RotateBox(CONFIG& config, int ig)
 {
-	Vector3d a;
-	Vector3d rotv;
-	Vector3d rtmp;
-	double angle;
-    time_t  time1, time2;
+    Vector3d a;
+    Vector3d rotv;
+    Vector3d rtmp;
+    double   angle;
+    time_t   time1, time2;
     time(&time1);
-    
+
 
     a = config.grain[ig].angle;
-	
-	rotv << cos(a(0))*sin(a(1)), sin(a(0))*sin(a(1)), cos(a(1));
-	angle = a(2);
-	
-	for (int i = 0; i < config.atoms_grain; i++)
-	{
-		rtmp = config.atom_grain[i].r;
-		config.atom_grain[i].r = rtmp * cos(angle) + rotv.cross(rtmp) * sin(angle) + (1 - cos(angle)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
-	}
+
+    rotv << cos(a(0))*sin(a(1)), sin(a(0))*sin(a(1)), cos(a(1));
+    angle = a(2);
+
+    for (int i = 0; i < config.atoms_grain; i++)
+    {
+        rtmp = config.atom_grain[i].r;
+        config.atom_grain[i].r = rtmp * cos(angle) + rotv.cross(rtmp) * sin(angle) + (1 - cos(angle)) * rotv *(rotv.dot(rtmp)) + config.grain[ig].r; //  Rodrigue's rotation formula
+    }
 
     time(&time2);
     if (config.time) cout << "Rotated in " << time2-time1 << " s.";
 
-	return 0;
+    return 0;
 }
 
-unsigned Voronoi(CONFIG &config, int ig) 
+unsigned Voronoi(CONFIG &config, int ig)
 {
 
-    float r = 0;
+    float r  = 0;
     float r0 = 0;
-    int jg = 0;
+    int   jg = 0;
     Vector3d g; g << 0 ,0 , 0;
     Vector3d p; p << 0 ,0 , 0;
     int n = 0;
@@ -140,50 +139,48 @@ unsigned Voronoi(CONFIG &config, int ig)
     float dx = 0.001; //   config.fnn/2 * 0.9;
 
     #pragma omp parallel for shared(config,n) private(p,g,jg,r,r0)
-	for(int i = 0; i < config.atoms_grain; i++) // check all atoms of this grain
-	{  
-		r = (config.atom_grain[i].r - config.grain[ig].r).norm() + dx; // distance to its center
+    for(int i = 0; i < config.atoms_grain; i++) // check all atoms of this grain
+    {
+        r = (config.atom_grain[i].r - config.grain[ig].r).norm() + dx; // distance to its center
+        for(jg = 0; jg < config.grains; jg++) // compare to the another grain centers
+        {
+            for(p(0) = -1; p(0) <=1; p(0)++)
+            {
+                for(p(1) = -1; p(1) <=1; p(1)++)
+                {
+                    for(p(2) = -1; p(2) <=1; p(2)++)
+                    {
+                        g = p.array()*config.l.array();
+                        r0 = (config.atom_grain[i].r - (config.grain[jg].r + g)).norm(); // distance from orig to other center
+                        if (!((ig == jg) && (p.norm()==0))) // exclude selfcheckong
+                        if (r > r0) break;
+                    }
+                    if(p(2)!=2) break;
+                }
+                if(p(1)!=2) break;
+            }
+            if(p(0)!=2) break;
+        }
 
-		for(jg = 0; jg < config.grains; jg++) // compare to the another grain centers
-		{
-			for(p(0) = -1; p(0) <=1; p(0)++)
-			{
-				for(p(1) = -1; p(1) <=1; p(1)++)
-				{
-					for(p(2) = -1; p(2) <=1; p(2)++)
-					{
-						g = p.array()*config.l.array();
-						r0 = (config.atom_grain[i].r - (config.grain[jg].r + g)).norm(); // distance from orig to other center
-						if (!((ig == jg) && (p.norm()==0))) // exclude selfcheckong
-						if (r > r0) break;
-					}
-					if(p(2)!=2) break;
-				}
-				if(p(1)!=2) break;
-			}
-			if(p(0)!=2) break;
-		}
-        
         #pragma omp critical
-		if (jg==config.grains)
-		{
-			config.atom_box[config.atoms_box] = config.atom_grain[i];
-			config.atoms_box++;
-			n++;
-		}
-		
-	}
+        if (jg==config.grains)
+        {
+            config.atom_box[config.atoms_box] = config.atom_grain[i];
+            config.atoms_box++;
+            n++;
+        }
 
-	
-	cout << "[" << ig << "] " << n ;
-	time(&time2);
+    }
+
+    cout << "[" << ig << "] " << n ;
+    time(&time2);
     cout << " Done in " << time2-time1 << " s.";
     cout << endl;
-	
-	return 0;
+
+    return 0;
 }
 
-unsigned Save(CONFIG &config) 
+unsigned Save(CONFIG &config)
 {
     time_t  time1, time2;
     time(&time1);
@@ -191,32 +188,52 @@ unsigned Save(CONFIG &config)
 
     cout << "Add " << config.atoms_box << " atoms to the box" << endl;
 
-	for(int i = 0; i < config.atoms_box; i++) // check all atoms of this grain
-	{
-		for(dim=0; dim < 3; dim++)
-		{
-			if (config.atom_box[i].r(dim) >  config.shift(dim)) config.atom_box[i].r(dim) -= config.l(dim);
-			else
-			if (config.atom_box[i].r(dim) < -config.shift(dim)) config.atom_box[i].r(dim) += config.l(dim);
-		}
-	}
+    for(int i = 0; i < config.atoms_box; i++) // check all atoms of this grain
+    {
+        for(dim=0; dim < 3; dim++)
+        {
+            if (config.atom_box[i].r(dim) >  config.shift(dim)) config.atom_box[i].r(dim) -= config.l(dim);
+            else
+            if (config.atom_box[i].r(dim) < -config.shift(dim)) config.atom_box[i].r(dim) += config.l(dim);
+        }
+    }
 
-	time(&time2);
+    time(&time2);
     if (config.time) cout << "Done in " << time2-time1 << " s." << endl;
 
-	return 0;
+    return 0;
+}
+
+unsigned SortGrig(CONFIG &config)
+{
+    const int CellAt = 100; // 100 atoms per cell
+    int Ncell;
+    Vector3d Lcell;
+
+
+    Ncell = (int)pow(config.atoms_box/CellAt,1.0/3.0);
+    Lcell = config.l/Ncell;
+
+    for(int i=0; i < config.atoms_box; i++)
+    {
+        Vector3d t = (config.atom_box[i].r.array() / Lcell.array()).matrix();
+        //config.cell[ (int)ceil(t[0]) ][ (int)ceil(t[1]) ][ (int)ceil(t[2]) ].add(i);
+        // Eigen::ceil() appears from v3.3
+    }
+
+    return 0;
 }
 
 int main(int argc, char **argv) {
 
-	time_t  time1, time2;
-	time(&time1);
+    time_t  time1, time2;
+    time(&time1);
 
-	CONFIG config = getinput(argc, argv);
+    CONFIG config = getinput(argc, argv);
 
-	cout << config.l.transpose() << " box, " << config.cell << " is requested, " << config.v << " A^3 per atom (lattice constant " << config.ac << ") in " << config.grains << " grains." << endl;
-	//cout << N << " atoms in box, " << config.atoms_grain << " per grain" << endl;
-	
+    cout << config.l.transpose() << " box, " << config.cell << " is requested, " << config.v << " A^3 per atom (lattice constant " << config.ac << ") in " << config.grains << " grains." << endl;
+    //cout << N << " atoms in box, " << config.atoms_grain << " per grain" << endl;
+
     if (config.read_grains)
     {
         ReadGrains(config);
@@ -225,37 +242,38 @@ int main(int argc, char **argv) {
     else
     {
         if (config.init) srand(time(NULL));
-	    IniGrainCenters(config);
-	    WriteGrains(config);
-	}
-	for (int ig = 0; ig < config.grains; ig++)
-	{
-		Lattice(config,ig);
-		RotateBox(config,ig);
-		Voronoi(config,ig);
-	}
-	cout << endl;
-	Save(config);
+        IniGrainCenters(config);
+        WriteGrains(config);
+    }
+    for (int ig = 0; ig < config.grains; ig++)
+    {
+        Lattice(config,ig);
+        RotateBox(config,ig);
+        Voronoi(config,ig);
+    }
+    cout << endl;
+    Save(config);
+    SortGrig(config);
 
     switch(config.out_type)
-      {
+    {
         case 1:
             WriteDLPOLY(config);
             break;
         case 2:
-        	WriteLAMMPS(config);
+            WriteLAMMPS(config);
             break;
-        case 3:            
-        	WriteXYZ(config);
-        	break;
+        case 3:
+            WriteXYZ(config);
+            break;
         default:
             throw "Unknown output format.";
             break;
-      }
- 
-	time(&time2);
-	
-	cout << "Total run " << time2-time1 << " s." << endl;
+    }
 
-	return 0;
+    time(&time2);
+
+    cout << "Total run " << time2-time1 << " s." << endl;
+
+    return 0;
 }

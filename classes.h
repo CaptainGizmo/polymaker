@@ -57,7 +57,7 @@ class CONFIG //: virtual GRAIN, virtual ATOM
         time = false;
         read_grains = false;
     }
-    
-};  
+
+};
 
 #endif

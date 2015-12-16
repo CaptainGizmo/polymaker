@@ -206,19 +206,18 @@ unsigned Save(CONFIG &config)
 
 unsigned SortGrig(CONFIG &config)
 {
-    const int CellAt = 100; // 100 atoms per cell
-    int Ncell;
     Vector3d Lcell;
-
-
-    Ncell = (int)pow(config.atoms_box/CellAt,1.0/3.0);
-    Lcell = config.l/Ncell;
+    Lcell = config.l / config.grid_size;
 
     for(int i=0; i < config.atoms_box; i++)
     {
-        Vector3d t = (config.atom_box[i].r.array() / Lcell.array()).matrix();
-        //config.cell[ (int)ceil(t[0]) ][ (int)ceil(t[1]) ][ (int)ceil(t[2]) ].add(i);
+        // shift coords to positive values and divide by grid cell length
         // Eigen::ceil() appears from v3.3
+        Vector3d r_reduced = (config.atom_box[i].r + config.shift).array() / Lcell.array();
+        // convert reduced coords to linear array number
+        int grid_id = floor(r_reduced[0]) * config.grid_size * config.grid_size + floor(r_reduced[1]) * config.grid_size + floor(r_reduced[2]);
+        //cout << grid_id <<" "<< floor(r_reduced[0]) << " " << floor(r_reduced[1]) << " " << floor(r_reduced[2]) << endl;
+        config.grid[grid_id].id.push_back(i);
     }
 
     return 0;

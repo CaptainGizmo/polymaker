@@ -29,6 +29,7 @@ class GRID
     public:
         //Vector3d r;  // physical grid position
         vector<int> id; //atom's ids
+        Vector3i r;
 };
 
 class CONFIG //: virtual GRAIN, virtual ATOM

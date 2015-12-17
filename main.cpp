@@ -206,9 +206,29 @@ unsigned Save(CONFIG &config)
 
 unsigned SortGrig(CONFIG &config)
 {
+    time_t  time1, time2;
+    time(&time1);
+
     Vector3d Lcell;
     Lcell = config.l / config.grid_size;
 
+
+    // fill grid with indeces
+    Vector3i r;
+    int grid_id = 0;
+    for(r[0] = 0; r[0] < config.grid_size ; r[0]++)
+    {
+        for(r[1] = 0; r[1] < config.grid_size ; r[1]++)
+        {
+            for(r[2] = 0; r[2] < config.grid_size ; r[2]++)
+            {
+                config.grid[grid_id].r = r;
+                grid_id++;
+            }
+        }
+    }
+
+    // fill grid cell with atom indeces
     for(int i=0; i < config.atoms_box; i++)
     {
         // shift coords to positive values and divide by grid cell length
@@ -219,6 +239,54 @@ unsigned SortGrig(CONFIG &config)
         //cout << grid_id <<" "<< floor(r_reduced[0]) << " " << floor(r_reduced[1]) << " " << floor(r_reduced[2]) << endl;
         config.grid[grid_id].id.push_back(i);
     }
+
+    time(&time2);
+    if (config.time) cout << "Done in " << time2-time1 << " s." << endl;
+
+    return 0;
+}
+
+unsigned CheckDistance(CONFIG &config)
+{
+    time_t  time1, time2;
+    time(&time1);
+
+    // check all cells
+    for(int cell=0; cell < pow( config.grid_size, 3.0)  ; cell++)
+    {
+        vector<int> neigh_ids;
+        Vector3i neigh_id, p;
+
+        // find all neighbors
+        for(p(0) = -1; p(0) <=1; p(0)++)
+        {
+            for(p(1) = -1; p(1) <=1; p(1)++)
+            {
+                for(p(2) = -1; p(2) <=1; p(2)++)
+                {
+                    neigh_id = config.grid[cell].r + p;
+
+                    // convert cell_id to PBC
+
+                    if (neigh_id[0] < 0) neigh_id[0] = config.grid_size - 1;
+                    if (neigh_id[1] < 0) neigh_id[1] = config.grid_size - 1;
+                    if (neigh_id[2] < 0) neigh_id[2] = config.grid_size - 1;
+
+                    if (neigh_id[0] == config.grid_size) neigh_id[0] = 0;
+                    if (neigh_id[1] == config.grid_size) neigh_id[1] = 0;
+                    if (neigh_id[2] == config.grid_size) neigh_id[2] = 0;
+
+                    // store neighbor cell ids to the list
+                    neigh_ids.push_back(neigh_id[0] * config.grid_size * config.grid_size + neigh_id[1] * config.grid_size + neigh_id[2]);
+                }
+            }
+        }
+
+        // compare config.grid[cell].id & config.grid[neigh_reduced].id
+    }
+
+    time(&time2);
+    if (config.time) cout << "Done in " << time2-time1 << " s." << endl;
 
     return 0;
 }
@@ -231,8 +299,8 @@ int main(int argc, char **argv) {
     CONFIG config = getinput(argc, argv);
 
     cout << config.l.transpose() << " box, " << config.cell << " is requested, " << config.v << " A^3 per atom (lattice constant " << config.ac << ") in " << config.grains << " grains." << endl;
-    //cout << N << " atoms in box, " << config.atoms_grain << " per grain" << endl;
 
+    // box initializaion
     if (config.read_grains)
     {
         ReadGrains(config);
@@ -244,6 +312,8 @@ int main(int argc, char **argv) {
         IniGrainCenters(config);
         WriteGrains(config);
     }
+
+    // filling the grains
     for (int ig = 0; ig < config.grains; ig++)
     {
         Lattice(config,ig);
@@ -251,9 +321,13 @@ int main(int argc, char **argv) {
         Voronoi(config,ig);
     }
     cout << endl;
+
+    // convolution and sorting off nigh atoms
     Save(config);
     SortGrig(config);
+    CheckDistance(config);
 
+    // output
     switch(config.out_type)
     {
         case 1:

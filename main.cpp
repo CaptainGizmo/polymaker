@@ -130,18 +130,18 @@ unsigned Voronoi(CONFIG &config, int ig)
     float r  = 0;
     float r0 = 0;
     int   jg = 0;
-    Vector3d g; g << 0 ,0 , 0;
-    Vector3d p; p << 0 ,0 , 0;
+    Vector3d g; g << 0, 0, 0;
+    Vector3d p; p << 0, 0, 0;
     int n = 0;
     time_t  time1, time2;
     time(&time1);
 
-    float dx = 0.001; //   config.fnn/2 * 0.9;
+    float dx = 1.5; // light overlap;
 
-    #pragma omp parallel for shared(config,n) private(p,g,jg,r,r0)
+    #pragma omp parallel for shared(config, n) private(p, g, jg, r, r0) schedule(dynamic, 1)
     for(int i = 0; i < config.atoms_grain; i++) // check all atoms of this grain
     {
-        r = (config.atom_grain[i].r - config.grain[ig].r).norm() + dx; // distance to its center
+        r = (config.atom_grain[i].r - config.grain[ig].r).norm() - dx; // distance to its center
         for(jg = 0; jg < config.grains; jg++) // compare to the another grain centers
         {
             for(p(0) = -1; p(0) <=1; p(0)++)
@@ -180,7 +180,7 @@ unsigned Voronoi(CONFIG &config, int ig)
     return 0;
 }
 
-unsigned Save(CONFIG &config)
+unsigned Convolution(CONFIG &config)
 {
     time_t  time1, time2;
     time(&time1);
@@ -243,6 +243,14 @@ unsigned SortGrig(CONFIG &config)
     time(&time2);
     if (config.time) cout << "Done in " << time2-time1 << " s." << endl;
 
+//    int s=0;
+//    for(unsigned i=0; i<config.grid.size(); i++)
+//    {
+//        s+=config.grid[i].id.size();
+//        cout << i << " " << config.grid[i].id.size() << endl;
+//    }
+//    cout << "Size " << s << endl;
+
     return 0;
 }
 
@@ -251,42 +259,98 @@ unsigned CheckDistance(CONFIG &config)
     time_t  time1, time2;
     time(&time1);
 
+    vector<ATOM>  atom_box;
+    int           atoms_box = 0;
+    int           deleted = 0;
+    double const  r_crit = 0.7 * pow(config.v,1.0/3.0);
+    int           ncells = pow( config.grid_size, 3.0);
+
+    int cell, cell_atom_id, neigh, neigh_atom_id, id1, id2;
+    bool f_deleted;
+    Vector3i neigh_id;
+    Vector3d pbc, r1, r2;
+    double dr;
+
     // check all cells
-    for(int cell=0; cell < pow( config.grid_size, 3.0)  ; cell++)
+    #pragma omp parallel for shared(config,atoms_box,atom_box) reduction(+:deleted) private(cell, cell_atom_id, neigh, neigh_atom_id, id1, id2, f_deleted, neigh_id, pbc, r1, r2, dr) schedule(dynamic, 1)
+    for(cell=0; cell < ncells; cell++)
     {
         vector<int> neigh_ids;
         Vector3i neigh_id, p;
 
-        // find all neighbors
-        for(p(0) = -1; p(0) <=1; p(0)++)
+        // loop over all atoms in the cell
+        for(cell_atom_id = config.grid[cell].id.size() -1; cell_atom_id >=0; cell_atom_id--)
         {
-            for(p(1) = -1; p(1) <=1; p(1)++)
+            f_deleted = false;
+            // loop over neighb cells (j)
+            // find all neighbor ids
+            for(p(0) = -1; p(0) <=1; p(0)++)
             {
-                for(p(2) = -1; p(2) <=1; p(2)++)
+                for(p(1) = -1; p(1) <=1; p(1)++)
                 {
-                    neigh_id = config.grid[cell].r + p;
+                    for(p(2) = -1; p(2) <=1; p(2)++)
+                    {
+                        neigh_id = config.grid[cell].r + p;
+                        pbc << 0, 0, 0;
 
-                    // convert cell_id to PBC
+                        // convert cell_id to PBC
+                        if (neigh_id[0] < 0) { neigh_id[0] = config.grid_size - 1; pbc[0] -= 1; }
+                        if (neigh_id[1] < 0) { neigh_id[1] = config.grid_size - 1; pbc[1] -= 1; }
+                        if (neigh_id[2] < 0) { neigh_id[2] = config.grid_size - 1; pbc[2] -= 1; }
 
-                    if (neigh_id[0] < 0) neigh_id[0] = config.grid_size - 1;
-                    if (neigh_id[1] < 0) neigh_id[1] = config.grid_size - 1;
-                    if (neigh_id[2] < 0) neigh_id[2] = config.grid_size - 1;
+                        if (neigh_id[0] == config.grid_size) { neigh_id[0] = 0; pbc[0] += 1; }
+                        if (neigh_id[1] == config.grid_size) { neigh_id[1] = 0; pbc[1] += 1; }
+                        if (neigh_id[2] == config.grid_size) { neigh_id[2] = 0; pbc[2] += 1; }
 
-                    if (neigh_id[0] == config.grid_size) neigh_id[0] = 0;
-                    if (neigh_id[1] == config.grid_size) neigh_id[1] = 0;
-                    if (neigh_id[2] == config.grid_size) neigh_id[2] = 0;
+                        // store neighbor cell ids to the list
+                        neigh=neigh_id[0] * config.grid_size * config.grid_size + neigh_id[1] * config.grid_size + neigh_id[2];
 
-                    // store neighbor cell ids to the list
-                    neigh_ids.push_back(neigh_id[0] * config.grid_size * config.grid_size + neigh_id[1] * config.grid_size + neigh_id[2]);
+                        for(neigh_atom_id = config.grid[neigh].id.size() -1; neigh_atom_id >=0; neigh_atom_id--)
+                        {
+                            // compare distances
+                            id1 = config.grid[cell].id[cell_atom_id];
+                            id2 = config.grid[neigh].id[neigh_atom_id];
+                            r1 = config.atom_box[id1].r;
+                            r2 = config.atom_box[id2].r + (pbc.array() * config.l.array()).matrix();
+                            dr = (r1 - r2).norm();
+
+                            if (( dr < r_crit ) && (id1 != id2))
+                            {
+                                // delete id from the cell list
+                                config.grid[cell].id.erase(config.grid[cell].id.begin()+cell_atom_id);
+                                f_deleted = true;
+                                deleted++;
+                            }
+                            if (f_deleted) break;
+                        }
+                        if (f_deleted) break;
+                    }
+                    if (f_deleted) break;
                 }
+                if (f_deleted) break;
             }
         }
 
-        // compare config.grid[cell].id & config.grid[neigh_reduced].id
+        // loop over all left atoms in the cell
+        for(int cell_atom_id = config.grid[cell].id.size() -1; cell_atom_id >=0; cell_atom_id--)
+        {
+            //write ids to the temporary storage
+            #pragma omp critical
+            {
+                atom_box.push_back(config.atom_box[config.grid[cell].id[cell_atom_id]]);
+                atoms_box++;
+            }
+
+        }
     }
 
+    // overwrite temporary atoms to final
+    config.atom_box = atom_box;
+    config.atoms_box = atoms_box;
+
     time(&time2);
-    if (config.time) cout << "Done in " << time2-time1 << " s." << endl;
+    cout << deleted << " deleted in " << time2-time1 << " s." << endl;
+
 
     return 0;
 }
@@ -323,7 +387,7 @@ int main(int argc, char **argv) {
     cout << endl;
 
     // convolution and sorting off nigh atoms
-    Save(config);
+    Convolution(config);
     SortGrig(config);
     CheckDistance(config);
 

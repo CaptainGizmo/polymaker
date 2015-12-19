@@ -13,7 +13,7 @@ class ATOM { // class for each atom's properties
     public:
         unsigned type;
         Vector3d r;
-        int      cell; // number of cell id in the grid
+        //int      cell; // number of cell id in the grid
 };
 
 class GRAIN// : virtual ATOM
@@ -54,8 +54,8 @@ class CONFIG //: virtual GRAIN, virtual ATOM
         string        name;       // element name
         string        cell;       // cell type name
         string        filename;   // grains parameter file name
-        vector<GRID>  grid;
-        int           grid_size;
+        vector<GRID>  grid;       // nearest neighbors greed
+        int           grid_size;  // total number of elements in grid = a^3
 
     CONFIG(Vector3d l, double ac, unsigned grains, double v, MatrixXd unit_cell) : l(l), ac(ac), grains(grains), grain(grains), unit_cell(unit_cell), v(v)
     {

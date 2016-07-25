@@ -5,6 +5,9 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+
 const int AtomsPerCell = 100;
 using namespace Eigen;
 using namespace std;
@@ -28,7 +31,7 @@ class GRID
 {
     public:
         //Vector3d r;  // physical grid position
-        vector<int> id; //atom's ids
+        thrust::host_vector<int> id; //atom's ids
         Vector3i r;
 };
 
@@ -37,7 +40,7 @@ class CONFIG //: virtual GRAIN, virtual ATOM
     public:
         Vector3d l;  // size of box in A
         Vector3d shift;
-        float ac;      // lattice const
+        double ac;      // lattice const
         int           grains;     // number of grains
         vector<GRAIN> grain;      // coordinates and properties of grain
         vector<ATOM>  atom_box;   // coordinates of atoms in the box
@@ -50,7 +53,7 @@ class CONFIG //: virtual GRAIN, virtual ATOM
         MatrixXd      unit_cell;  // unit cell vectors
         int           cell_type;  // unit cell code
         int           out_type;   // output file code
-        double        v;          // volume per atom
+        double         v;          // volume per atom
         string        name;       // element name
         string        cell;       // cell type name
         string        filename;   // grains parameter file name

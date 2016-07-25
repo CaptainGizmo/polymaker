@@ -17,9 +17,14 @@
 
 #include <boost/program_options.hpp>
 
-#ifndef  CLASSES_H  
+#ifndef  CLASSES_H
 #include "classes.h"
 #endif
+
+//#if (defined __GNUC__) && (__GNUC__>4 || __GNUC_MINOR__>=7)
+//  #undef _GLIBCXX_ATOMIC_BUILTINS
+//  #undef _GLIBCXX_USE_INT128
+//#endif
 
 using namespace Eigen;
 using namespace std;
@@ -28,7 +33,7 @@ namespace po = boost::program_options;
 template<class T>
 ostream& operator<<(ostream& os, const vector<T>& v)
 {
-    copy(v.begin(), v.end(), ostream_iterator<T>(cout, " ")); 
+    copy(v.begin(), v.end(), ostream_iterator<T>(cout, " "));
     return os;
 }
 
@@ -63,22 +68,22 @@ CONFIG getinput(int argc, char **argv)
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
-        po::notify(vm);    
+        po::notify(vm);
 
         if (vm.count("help")) {
             cout << desc << "\n";
             exit(1);
         }
-        if (!vm.count("height")) 
+        if (!vm.count("height"))
             l[1] = l[0];
-        if (!vm.count("length")) 
+        if (!vm.count("length"))
             l[2] = l[0];
-        if (vm.count("out"))     
+        if (vm.count("out"))
             cout << "Output file type is " << vm["out"].as<std::string>() << "\n";
-          
+
         if (cell.compare("bcc") == 0)
             cell_type = 1;
-        else 
+        else
         if (cell.compare("fcc") == 0)
            cell_type = 2;
         else
@@ -87,49 +92,50 @@ CONFIG getinput(int argc, char **argv)
 
         if (out.compare("dlpoly") == 0)
             out_type = 1;
-        else 
+        else
         if (out.compare("lammps") == 0)
            out_type = 2;
-        else 
+        else
         if (out.compare("xyz") == 0)
            out_type = 3;
         else
            throw "Unknown output format!";
-           
+
         switch(cell_type)
         {
-            case 1: 
+            case 1:
                 // bcc
                 unit_cell.resize(3,2);
                 unit_cell << 0, 0.5,
                             0, 0.5,
                             0, 0.5;
-                ac = pow(2.0*v,1.0/3.0);    
+                ac = pow(2.0*v,1.0/3.0);
                 break;
             case 2:
+                // fcc
                 unit_cell.resize(3,4);
                 unit_cell << 0, 0.5, 0.5,   0,
                             0,   0, 0.5, 0.5,
                             0, 0.5,   0, 0.5;
-                ac = pow(4.0*v,1.0/3.0);    
+                ac = pow(4.0*v,1.0/3.0);
                 break;
             default:
                 throw "Unknown cell type!";
                 break;
         }
-    
+
         CONFIG config(l, ac, grains, v, unit_cell);
         config.name = name;
         config.out_type = out_type;
         config.cell_type = cell_type;
         config.cell = cell;
         config.filename = filename;
-        if (vm.count("input")) 
+        if (vm.count("input"))
             config.read_grains = true;
 
         if (vm["init"].as<std::string>().compare("Y") == 0)
             config.init = true;
-        else 
+        else
         if (vm["init"].as<std::string>().compare("N") == 0)
             config.init = false;
         else
@@ -145,7 +151,7 @@ CONFIG getinput(int argc, char **argv)
     catch(...) {
       cerr << "Exception of unknown type!\n";
       exit(1);
-    } 
+    }
 }
 
 unsigned ReadGrains(CONFIG &config)
@@ -158,27 +164,27 @@ unsigned ReadGrains(CONFIG &config)
     int j;
 
     try
-    {    
+    {
 
         cout << "Read grain parameters from " << config.filename << endl;
         ifstream infile (config.filename.c_str(),ios::in);
-        if( !infile ) 
+        if( !infile )
         {
-            cout << "Can't open " << config.filename.c_str() << endl; 
+            cout << "Can't open " << config.filename.c_str() << endl;
             exit(1);
         }
 
         while( getline( infile, buf) )
         {
-            iss.str(buf); 
-            iss.clear(); 
+            iss.str(buf);
+            iss.clear();
             iss >> j >> grain.r(0)  >> grain.r(1) >> grain.r(2) >> grain.angle(0) >> grain.angle(1) >> grain.angle(2);
             //cout << i << " " << config.grain[i].r.transpose() << " " << config.grain[i].angle.transpose() << endl;
             config.grain[i].r = grain.r.array() * config.l.array();
             config.grain[i].angle = grain.angle;
             i ++;
         }
-        
+
         if (i != config.grains) throw "Wrong number of lines in grains parameter file.";
         infile.close();
 

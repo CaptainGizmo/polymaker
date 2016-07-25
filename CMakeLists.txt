@@ -1,5 +1,5 @@
 SET(MAJOR_VERSION 1)
-SET(MINOR_VERSION 1)
+SET(MINOR_VERSION 2)
 SET(PATCH_VERSION 0)
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
@@ -8,11 +8,24 @@ enable_language(CXX)
 
 SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 SET(BUILD_SHARED_LIBRARIES OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-static")
+SET(CMAKE_EXE_LINKER_FLAGS "")
+SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
-add_executable(poly main.cpp input.cpp output.cpp)
 
-find_package(Eigen3 3.0.0)
+
+#set(CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
+set(CUDA_NVCC_FLAGS  ${CUDA_NVCC_FLAGS}; -O3 -gencode arch=compute_20,code=sm_20)
+set(CUDA_CUDART_LIBRARY /usr/local/cuda-7.5/lib64/libcudart.so)
+find_package(CUDA REQUIRED)
+
+if (CUDA_FOUND)
+    include_directories(${CUDA_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "-- Could not find CUDA. Program_options library")
+endif()
+
+
+find_package(Eigen3 3.0.0 REQUIRED)
 
 if(EIGEN3_FOUND)
     include_directories(${EIGEN3_INCLUDE_DIR})
@@ -20,7 +33,7 @@ else()
     message(FATAL_ERROR "-- Could not find any EIGEN3 library")
 endif()
 
-find_package(Boost)
+find_package(Boost REQUIRED)
 #find_package(Boost 1.34.0 COMPONENTS Program_options ...)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -28,11 +41,19 @@ else()
     message(FATAL_ERROR "-- Could not find BOOST.Program_options library")
 endif()
 
+
+cuda_add_executable(poly
+    main.cu
+    classes.h
+    input.cpp
+    input.h
+    output.cpp
+    output.h
+    )
+
 target_link_libraries(poly boost_program_options)
 
-set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -lm -fopenmp")
-set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -lm -lcuda -std=c++11 ")
 
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)

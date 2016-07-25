@@ -14,7 +14,7 @@
 #include <Eigen/Dense>
 #include <Eigen/LU>
 
-#ifndef  CLASSES_H  
+#ifndef  CLASSES_H
 #include "classes.h"
 #endif
 
@@ -33,7 +33,7 @@ unsigned WriteLAMMPS(CONFIG &config)
     ofstream outfile (filename_s.c_str(), ios::trunc);
     outfile.precision(5);
 
-    Vector3d l;
+    Vector3f l;
 
     outfile << "Polycrystal made by polymaker. Box " << config.l.transpose() << " A, " << config.v << " A^3 per atom." << endl;
     outfile << "1 atom types\n";
@@ -58,7 +58,7 @@ unsigned WriteLAMMPS(CONFIG &config)
     {
         outfile << i+1 << " 1 " << setw (15)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << endl;
     }
-    
+
     outfile.close();
 
     return 0;
@@ -81,7 +81,7 @@ unsigned WriteXYZ(CONFIG &config)
     {
         outfile << config.name << setw (15)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << " " << config.atom_box[i].type << endl;
     }
-    
+
     outfile.close();
 
     return 0;
@@ -109,7 +109,7 @@ unsigned WriteDLPOLY(CONFIG &config)
         outfile << config.name << "   " << i+1 << endl;
         outfile << setw (22)  << config.atom_box[i].r(0) << " " << config.atom_box[i].r(1) << " " << config.atom_box[i].r(2) << endl;
     }
-    
+
     outfile.close();
 
     return 0;
@@ -130,7 +130,7 @@ unsigned WriteGrains(CONFIG &config)
     {
         outfile << setw (15) << i << " " << (config.grain[i].r.array()/config.l.array()).transpose() << " " << config.grain[i].angle.transpose() << endl;
     }
-    
+
     outfile.close();
 
 
